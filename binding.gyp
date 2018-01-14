@@ -10,7 +10,12 @@
           "sources": [ "src/mac.mm" ],
           "libraries": [
             "-framework AppKit"
-          ]
+          ],
+          "xcode_settings": {
+            "OTHER_CFLAGS": [
+              "-fobjc-arc"
+            ]
+          }
         }],
         ['OS=="win"', {
           "sources": [ "src/windows.cc" ]
