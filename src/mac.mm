@@ -26,6 +26,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     }
 
     auto pasteboard = [NSPasteboard generalPasteboard];
+    [pasteboard clearContents];
     [pasteboard writeObjects:pasteboardItems];
 }
 
