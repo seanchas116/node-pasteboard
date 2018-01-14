@@ -1,5 +1,11 @@
+interface PasteboardImage {
+  width: number
+  height: number
+  data: Uint8ClampedArray
+}
+
 interface PasteboardValues {
-  image?: string
+  image?: PasteboardImage
   text?: string
   data?: { [mimeType: string]: Buffer | string }
 }
@@ -10,7 +16,7 @@ export function hasImage (): boolean
 export function hasText (): boolean
 export function hasData (mimeType: string): boolean
 
-export function getImage (): string
+export function getImage (): PasteboardImage
 export function getText (): string
 export function getDataBuffer (mimeType: string): Buffer
 export function getDataString (mimeType: string): string
