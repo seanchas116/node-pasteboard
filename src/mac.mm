@@ -74,11 +74,22 @@ static void hasImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
 static void hasText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto pasteboard = [NSPasteboard generalPasteboard];
-    auto types = pasteboard.types;
-    bool contains = [types containsObject:NSPasteboardTypeString];
+    bool contains = [pasteboard.types containsObject:NSPasteboardTypeString];
     info.GetReturnValue().Set(Nan::New(contains));
 }
 static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("Wrong number of arguments");
+        return;
+    }
+    if (!info[0]->IsString()) {
+        Nan::ThrowTypeError("Argument must be String");
+        return;
+    }
+    auto pasteboard = [NSPasteboard generalPasteboard];
+    auto uti = mimeToUTI(toNSString(info[0]->ToString()));
+    bool contains = [pasteboard.types containsObject:uti];
+    info.GetReturnValue().Set(Nan::New(contains));
 }
 
 static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
