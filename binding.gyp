@@ -7,7 +7,10 @@
       ],
       "conditions": [
         ['OS=="mac"', {
-          "sources": [ "src/mac.mm" ]
+          "sources": [ "src/mac.mm" ],
+          "libraries": [
+            "-framework AppKit"
+          ]
         }],
         ['OS=="win"', {
           "sources": [ "src/windows.cc" ]
