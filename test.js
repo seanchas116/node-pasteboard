@@ -17,8 +17,10 @@ describe('pasteboard', () => {
     const type = 'application/x-foo-bar'
     const data = 'Hello, custom data'
     pasteboard.set({
+      text: data,
       data: { [type]: data }
     })
+    assert.equal(clipboardy.readSync(), data)
     assert.equal(pasteboard.getDataString(type), data)
   })
   it('sets/gets custom data buffer', () => {
