@@ -1,7 +1,7 @@
 #include <nan.h>
 #import <Cocoa/Cocoa.h>
 
-static NSString *v8ToNSString(const v8::Local<v8::String>& string) {
+static NSString *toNSString(const v8::Local<v8::String>& string) {
     v8::String::Utf8Value utf8(string);
     return [NSString stringWithUTF8String:*utf8];
 }
@@ -32,7 +32,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("Text must be String");
             return;
         }
-        [pasteboardItems addObject: v8ToNSString(text->ToString())];
+        [pasteboardItems addObject: toNSString(text->ToString())];
     }
 
     auto dataKey = Nan::New("data").ToLocalChecked();
@@ -49,9 +49,9 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         for (size_t i = 0; i < dataKeys->Length(); ++i) {
             auto mime = dataKeys->Get(i);
             auto data = dataObject->Get(mime);
-            auto uti = mimeToUTI(v8ToNSString(mime->ToString()));
+            auto uti = mimeToUTI(toNSString(mime->ToString()));
             if (data->IsString()) {
-                [pasteboardItem setString:v8ToNSString(data->ToString()) forType:uti];
+                [pasteboardItem setString:toNSString(data->ToString()) forType:uti];
             } else if (node::Buffer::HasInstance(data)) {
                 auto bytes = node::Buffer::Data(data);
                 auto length = node::Buffer::Length(data);
@@ -98,7 +98,7 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto pasteboard = [NSPasteboard generalPasteboard];
-    auto uti = mimeToUTI(v8ToNSString(info[0]->ToString()));
+    auto uti = mimeToUTI(toNSString(info[0]->ToString()));
     auto data = [pasteboard dataForType:uti];
     if (data != nil) {
         auto maybeBuffer = Nan::CopyBuffer((char *)data.bytes, data.length);
@@ -117,7 +117,7 @@ static void getDataString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto pasteboard = [NSPasteboard generalPasteboard];
-    auto uti = mimeToUTI(v8ToNSString(info[0]->ToString()));
+    auto uti = mimeToUTI(toNSString(info[0]->ToString()));
     auto string = [pasteboard stringForType:uti];
     if (string != nil) {
         info.GetReturnValue().Set(Nan::New([string UTF8String]).ToLocalChecked());
