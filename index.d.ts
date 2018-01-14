@@ -1,7 +1,7 @@
 interface PasteboardValues {
   image?: string
   text?: string
-  data?: { [type: string]: Buffer }
+  data?: { [type: string]: Buffer | string }
 }
 
 export function set (values: PasteboardValues)
@@ -12,4 +12,5 @@ export function hasData (type: string): boolean
 
 export function getImage (): string
 export function getText (): string
-export function getData (type: string): Buffer
+export function getDataBuffer (type: string): Buffer
+export function getDataString (type: string): string
