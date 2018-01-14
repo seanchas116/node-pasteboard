@@ -72,11 +72,13 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
 static void hasImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
+
 static void hasText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto pasteboard = [NSPasteboard generalPasteboard];
     bool contains = [pasteboard.types containsObject:NSPasteboardTypeString];
     info.GetReturnValue().Set(Nan::New(contains));
 }
+
 static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
@@ -94,11 +96,13 @@ static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
 static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
+
 static void getText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto pasteboard = [NSPasteboard generalPasteboard];
     auto text = [pasteboard stringForType:NSPasteboardTypeString];
     info.GetReturnValue().Set(Nan::New([text UTF8String]).ToLocalChecked());
 }
+
 static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
@@ -118,6 +122,7 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         }
     }
 }
+
 static void getDataString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
