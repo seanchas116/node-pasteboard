@@ -13,12 +13,20 @@ describe('pasteboard', () => {
     clipboardy.writeSync(text)
     assert.equal(pasteboard.getText(), text)
   })
-  it('sets/gets custom data', () => {
+  it('sets/gets custom data string', () => {
     const type = 'application/x-foo-bar'
     const data = 'Hello, custom data'
     pasteboard.set({
       data: { [type]: data }
     })
     assert.equal(pasteboard.getDataString(type), data)
+  })
+  it('sets/gets custom data buffer', () => {
+    const type = 'application/x-foo-bar'
+    const data = Buffer.from('Hello, custom data')
+    pasteboard.set({
+      data: { [type]: data }
+    })
+    assert.equal(pasteboard.getDataBuffer(type).toString(), data)
   })
 })
