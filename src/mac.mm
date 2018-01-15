@@ -15,7 +15,8 @@ static NSString *mimeToUTI(NSString *mime) {
 static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
     auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
     auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
-                                  CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB), // TODO: is this color space is correct?
+                                  // CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB),
+                                  CGColorSpaceCreateDeviceRGB(),
                                   kCGBitmapByteOrderDefault,
                                   provider,
                                   nullptr,
