@@ -15,7 +15,7 @@ static NSString *mimeToUTI(NSString *mime) {
 static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
     auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
     auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
-                                  CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB),
+                                  CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB), // TODO: is this color space is correct?
                                   kCGBitmapByteOrderDefault,
                                   provider,
                                   nullptr,
@@ -75,7 +75,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         size_t w = width->ToNumber()->Int32Value();
         size_t h = height->ToNumber()->Int32Value();
         auto array = v8::Local<v8::ArrayBufferView>::Cast(data);
-        if (w * h != array->ByteLength()) {
+        if (w * h * 4 != array->ByteLength()) {
             Nan::ThrowTypeError("The length of data is wrong");
         }
         auto p = (uint8_t *)array->Buffer()->GetContents().Data() + array->ByteOffset();
