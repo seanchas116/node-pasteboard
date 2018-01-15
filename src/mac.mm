@@ -12,6 +12,24 @@ static NSString *mimeToUTI(NSString *mime) {
     return (__bridge_transfer NSString *)uti;
 }
 
+static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
+    auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
+    auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
+                                  CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB),
+                                  kCGBitmapByteOrderDefault,
+                                  provider,
+                                  nullptr,
+                                  false,
+                                  kCGRenderingIntentDefault);
+
+    auto imageRep = [[NSBitmapImageRep alloc] initWithCGImage:imageRef];
+    auto image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+    [image addRepresentation:imageRep];
+    CFRelease(provider);
+    CFRelease(imageRef);
+    return image;
+}
+
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
@@ -33,6 +51,37 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             return;
         }
         [pasteboardItems addObject: toNSString(text->ToString())];
+    }
+
+    auto imageKey = Nan::New("image").ToLocalChecked();
+    if (values->Has(imageKey)) {
+        auto image = values->Get(imageKey);
+        if (!image->IsObject()) {
+            Nan::ThrowTypeError("Image must be Object");
+            return;
+        }
+        auto imageObj = image->ToObject();
+        auto width = imageObj->Get(Nan::New("width").ToLocalChecked());
+        auto height = imageObj->Get(Nan::New("height").ToLocalChecked());
+        auto data = imageObj->Get(Nan::New("data").ToLocalChecked());
+        if (!width->IsNumber() || !height->IsNumber()) {
+            Nan::ThrowTypeError("width & height must be Number");
+            return;
+        }
+        if (!data->IsArrayBufferView()) {
+            Nan::ThrowTypeError("data must be ArrayBufferView");
+            return;
+        }
+        size_t w = width->ToNumber()->Int32Value();
+        size_t h = height->ToNumber()->Int32Value();
+        auto array = v8::Local<v8::ArrayBufferView>::Cast(data);
+        if (w * h != array->ByteLength()) {
+            Nan::ThrowTypeError("The length of data is wrong");
+        }
+        auto p = (uint8_t *)array->Buffer()->GetContents().Data() + array->ByteOffset();
+
+        auto nsImage = imageFromPixels(w, h, p);
+        [pasteboardItems addObject:nsImage];
     }
 
     auto dataKey = Nan::New("data").ToLocalChecked();
