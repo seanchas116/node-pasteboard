@@ -31,6 +31,30 @@ static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
     return image;
 }
 
+static void imageToPixels(NSImage *image, uint8_t *rawData) {
+    size_t width = image.size.width;
+    size_t height = image.size.height;
+
+    auto rep = [[NSBitmapImageRep alloc]
+                initWithBitmapDataPlanes: (uint8_t **)rawData
+                 pixelsWide: width
+                 pixelsHigh: height
+                 bitsPerSample: 8
+                 samplesPerPixel: 4
+                 hasAlpha: true
+                 isPlanar: false
+                 colorSpaceName: NSDeviceRGBColorSpace
+                 bytesPerRow: width * 4
+                 bitsPerPixel: 32];
+
+    auto context = [NSGraphicsContext graphicsContextWithBitmapImageRep: rep];
+    [NSGraphicsContext saveGraphicsState];
+    [NSGraphicsContext setCurrentContext: context];
+    [image drawAtPoint: NSZeroPoint fromRect: NSZeroRect operation: NSCompositeCopy fraction: 1.0];
+    [context flushGraphics];
+    [NSGraphicsContext restoreGraphicsState];
+}
+
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
@@ -69,17 +93,16 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("width & height must be Number");
             return;
         }
-        if (!data->IsArrayBufferView()) {
-            Nan::ThrowTypeError("data must be ArrayBufferView");
+        if (!node::Buffer::HasInstance(data)) {
+            Nan::ThrowTypeError("data must be Buffer");
             return;
         }
         size_t w = width->ToNumber()->Int32Value();
         size_t h = height->ToNumber()->Int32Value();
-        auto array = v8::Local<v8::ArrayBufferView>::Cast(data);
-        if (w * h * 4 != array->ByteLength()) {
+        if (w * h * 4 != node::Buffer::Length(data)) {
             Nan::ThrowTypeError("The length of data is wrong");
         }
-        auto p = (uint8_t *)array->Buffer()->GetContents().Data() + array->ByteOffset();
+        auto p = (uint8_t *)node::Buffer::Data(data);
 
         auto nsImage = imageFromPixels(w, h, p);
         [pasteboardItems addObject:nsImage];
@@ -145,6 +168,23 @@ static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    auto pasteboard = [NSPasteboard generalPasteboard];
+    auto images = [pasteboard readObjectsForClasses:@[[NSImage class]] options:@{}];
+    if (images != nil && images.count > 0) {
+        NSImage *image = images[0];
+        int width = image.size.width;
+        int height = image.size.height;
+        if (width < 1 || height < 1) {
+            return;
+        }
+        auto buffer = Nan::NewBuffer(width * height * 4).ToLocalChecked();
+        imageToPixels(image, (uint8_t *)node::Buffer::Data(buffer));
+        auto obj = Nan::New<v8::Object>();
+        obj->Set(Nan::New("width").ToLocalChecked(), Nan::New(width));
+        obj->Set(Nan::New("height").ToLocalChecked(), Nan::New(height));
+        obj->Set(Nan::New("data").ToLocalChecked(), buffer);
+        info.GetReturnValue().Set(obj);
+    }
 }
 
 static void getText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
