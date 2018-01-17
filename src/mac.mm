@@ -157,18 +157,13 @@ static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto images = [pasteboard readObjectsForClasses:@[[NSImage class]] options:@{}];
     if (images != nil && images.count > 0) {
         NSImage *image = images[0];
-        int width = image.size.width;
-        int height = image.size.height;
-        if (width < 1 || height < 1) {
-            return;
-        }
-        auto buffer = Nan::NewBuffer(width * height * 4).ToLocalChecked();
-        imageToPixels(image, (uint8_t *)node::Buffer::Data(buffer));
-        auto obj = Nan::New<v8::Object>();
-        obj->Set(Nan::New("width").ToLocalChecked(), Nan::New(width));
-        obj->Set(Nan::New("height").ToLocalChecked(), Nan::New(height));
-        obj->Set(Nan::New("data").ToLocalChecked(), buffer);
-        info.GetReturnValue().Set(obj);
+
+        auto tiffData = [image TIFFRepresentation];
+        auto imageRep = [NSBitmapImageRep imageRepWithData:tiffData];
+        auto pngData = [imageRep representationUsingType:NSPNGFileType properties:@{}];
+
+        auto buffer = Nan::CopyBuffer((const char *)pngData.bytes, pngData.length).ToLocalChecked();
+        info.GetReturnValue().Set(buffer);
     }
 }
 
