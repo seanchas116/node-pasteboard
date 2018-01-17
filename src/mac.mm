@@ -12,50 +12,6 @@ static NSString *mimeToUTI(NSString *mime) {
     return (__bridge_transfer NSString *)uti;
 }
 
-static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
-    auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
-    auto colorSpace = CGColorSpaceCreateDeviceRGB();
-    auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
-                                  colorSpace,
-                                  kCGBitmapByteOrderDefault | kCGImageAlphaLast,
-                                  provider,
-                                  nullptr,
-                                  false,
-                                  kCGRenderingIntentDefault);
-
-    auto imageRep = [[NSBitmapImageRep alloc] initWithCGImage:imageRef];
-    auto image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
-    [image addRepresentation:imageRep];
-    CFRelease(provider);
-    CFRelease(colorSpace);
-    CFRelease(imageRef);
-    return image;
-}
-
-static void imageToPixels(NSImage *image, uint8_t *rawData) {
-    size_t width = image.size.width;
-    size_t height = image.size.height;
-
-    auto rep = [[NSBitmapImageRep alloc]
-                initWithBitmapDataPlanes: (uint8_t **)rawData
-                 pixelsWide: width
-                 pixelsHigh: height
-                 bitsPerSample: 8
-                 samplesPerPixel: 4
-                 hasAlpha: true
-                 isPlanar: false
-                 colorSpaceName: NSDeviceRGBColorSpace
-                 bytesPerRow: width * 4
-                 bitsPerPixel: 32];
-
-    auto context = [NSGraphicsContext graphicsContextWithBitmapImageRep: rep];
-    [NSGraphicsContext saveGraphicsState];
-    [NSGraphicsContext setCurrentContext: context];
-    [image drawAtPoint: NSZeroPoint fromRect: NSZeroRect operation: NSCompositeCopy fraction: 1.0];
-    [context flushGraphics];
-    [NSGraphicsContext restoreGraphicsState];
-}
-
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
