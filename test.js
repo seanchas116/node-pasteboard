@@ -48,7 +48,7 @@ describe('pasteboard', () => {
     const copiedPngData = Buffer.from(copiedImage.slice(header.length), 'base64')
 
     const original = PNG.sync.read(pngData)
-    const copied = PNG.sync.read(copiedPngData)
+    const copied = PNG.sync.read(copiedPngData) // FIXME: Parsing copiedPngData crashes
     assert.deepEqual(copied.data, original.data)
   })
 })
