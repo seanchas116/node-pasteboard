@@ -82,30 +82,14 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto imageKey = Nan::New("image").ToLocalChecked();
     if (values->Has(imageKey)) {
         auto image = values->Get(imageKey);
-        if (!image->IsObject()) {
-            Nan::ThrowTypeError("Image must be Object");
+        if (!node::Buffer::HasInstance(image)) {
+            Nan::ThrowTypeError("Image must be Buffer");
             return;
         }
-        auto imageObj = image->ToObject();
-        auto width = imageObj->Get(Nan::New("width").ToLocalChecked());
-        auto height = imageObj->Get(Nan::New("height").ToLocalChecked());
-        auto data = imageObj->Get(Nan::New("data").ToLocalChecked());
-        if (!width->IsNumber() || !height->IsNumber()) {
-            Nan::ThrowTypeError("width & height must be Number");
-            return;
-        }
-        if (!node::Buffer::HasInstance(data)) {
-            Nan::ThrowTypeError("data must be Buffer");
-            return;
-        }
-        size_t w = width->ToNumber()->Int32Value();
-        size_t h = height->ToNumber()->Int32Value();
-        if (w * h * 4 != node::Buffer::Length(data)) {
-            Nan::ThrowTypeError("The length of data is wrong");
-        }
-        auto p = (uint8_t *)node::Buffer::Data(data);
-
-        auto nsImage = imageFromPixels(w, h, p);
+        auto len = node::Buffer::Length(image);
+        auto p = node::Buffer::Data(image);
+        auto data = [[NSData alloc] initWithBytes:p length:len];
+        auto nsImage = [[NSImage alloc] initWithData:data];
         [pasteboardItems addObject:nsImage];
     }
 
