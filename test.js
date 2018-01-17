@@ -36,23 +36,24 @@ describe('pasteboard', () => {
     assert.equal(pasteboard.getDataBuffer(type2).toString(), data)
   })
   it('sets/gets image', () => {
-    const width = 200
-    const height  = 100
+    const width = 20
+    const height  = 10
     const data = new Buffer(width * height * 4)
 
     let i = 0
     for (let y = 0; y < height; ++y) {
       for (let x = 0; x < width; ++x) {
-        if (x < 100) {
+        if (x < 10) {
           data[i++] = 255
           data[i++] = 0
           data[i++] = 0
           data[i++] = 255
         } else {
+          // unpremultiplied transparent color
           data[i++] = 0
           data[i++] = 255
           data[i++] = 0
-          data[i++] = 255
+          data[i++] = 128
         }
       }
     }
@@ -63,6 +64,6 @@ describe('pasteboard', () => {
     let copiedImage = pasteboard.getImage()
     assert.equal(copiedImage.width, image.width)
     assert.equal(copiedImage.height, image.height)
-    assert.deepEqual(copiedImage.data.slice(0, 100), image.data.slice(0, 100))
+    assert.deepEqual(copiedImage.data, image.data)
   })
 })
