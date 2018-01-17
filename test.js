@@ -1,6 +1,7 @@
 const fs = require('fs')
 const assert = require('assert')
 const clipboardy = require('clipboardy')
+const {PNG} = require('pngjs');
 const pasteboard = require('.')
 
 describe('pasteboard', () => {
@@ -37,11 +38,16 @@ describe('pasteboard', () => {
     assert.equal(pasteboard.getDataBuffer(type2).toString(), data)
   })
   it('sets/gets image', () => {
-    const png = fs.readFileSync('test.png')
-    const dataURL = 'data:image/png;base64,' + png.toString('base64')
+    const header = 'data:image/png;base64,'
+    const pngData = fs.readFileSync('test.png')
+    const dataURL = header + pngData.toString('base64')
     pasteboard.set({image: dataURL})
 
     let copiedImage = pasteboard.getImage()
-    // TODO: check if the image is same
+    assert.equal(copiedImage.slice(0, header.length), header)
+    const copiedPngData = Buffer.from(copiedImage.slice(header.length), 'base64')
+
+    const original = PNG.sync.read(pngData)
+    const copied = PNG.sync.read(copiedPngData)
   })
 })
