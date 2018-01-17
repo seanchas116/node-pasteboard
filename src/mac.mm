@@ -36,14 +36,24 @@ static void imageToPixels(NSImage *image, uint8_t *rawData) {
     size_t width = image.size.width;
     size_t height = image.size.height;
 
-    auto colorSpace = CGColorSpaceCreateDeviceRGB();
-    auto bitmapContext = CGBitmapContextCreate(rawData, width, height, 8, width * 4, colorSpace, kCGImageAlphaPremultipliedLast);
-    auto rect = NSMakeRect(0, 0, width, height);
-    auto cgImage = [image CGImageForProposedRect:&rect context:[NSGraphicsContext currentContext] hints:nil];
-    CGContextDrawImage(bitmapContext, NSRectToCGRect(rect), cgImage);
-    CFRelease(cgImage);
-    CFRelease(bitmapContext);
-    CFRelease(colorSpace);
+    auto rep = [[NSBitmapImageRep alloc]
+                initWithBitmapDataPlanes: (uint8_t **)rawData
+                 pixelsWide: width
+                 pixelsHigh: height
+                 bitsPerSample: 8
+                 samplesPerPixel: 4
+                 hasAlpha: true
+                 isPlanar: false
+                 colorSpaceName: NSDeviceRGBColorSpace
+                 bytesPerRow: width * 4
+                 bitsPerPixel: 32];
+
+    auto context = [NSGraphicsContext graphicsContextWithBitmapImageRep: rep];
+    [NSGraphicsContext saveGraphicsState];
+    [NSGraphicsContext setCurrentContext: context];
+    [image drawAtPoint: NSZeroPoint fromRect: NSZeroRect operation: NSCompositeCopy fraction: 1.0];
+    [context flushGraphics];
+    [NSGraphicsContext restoreGraphicsState];
 }
 
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
