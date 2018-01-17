@@ -14,10 +14,10 @@ static NSString *mimeToUTI(NSString *mime) {
 
 static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
     auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
+    auto colorSpace = CGColorSpaceCreateDeviceRGB();
     auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
-                                  // CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB),
-                                  CGColorSpaceCreateDeviceRGB(),
-                                  kCGBitmapByteOrderDefault,
+                                  colorSpace,
+                                  kCGBitmapByteOrderDefault | kCGImageAlphaLast,
                                   provider,
                                   nullptr,
                                   false,
@@ -27,6 +27,7 @@ static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
     auto image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
     [image addRepresentation:imageRep];
     CFRelease(provider);
+    CFRelease(colorSpace);
     CFRelease(imageRef);
     return image;
 }
