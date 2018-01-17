@@ -142,10 +142,8 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto uti = mimeToUTI(toNSString(info[0]->ToString()));
     auto data = [pasteboard dataForType:uti];
     if (data != nil) {
-        auto maybeBuffer = Nan::CopyBuffer((char *)data.bytes, data.length);
-        if (!maybeBuffer.IsEmpty()) {
-            info.GetReturnValue().Set(maybeBuffer.ToLocalChecked());
-        }
+        auto buffer = Nan::CopyBuffer((const char *)data.bytes, data.length).ToLocalChecked();
+        info.GetReturnValue().Set(buffer);
     }
 }
 
