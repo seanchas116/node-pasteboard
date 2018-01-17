@@ -49,5 +49,6 @@ describe('pasteboard', () => {
 
     const original = PNG.sync.read(pngData)
     const copied = PNG.sync.read(copiedPngData)
+    assert.deepEqual(copied.data, original.data)
   })
 })
