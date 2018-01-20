@@ -85,6 +85,9 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 static void hasImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    auto pasteboard = [NSPasteboard generalPasteboard];
+    bool canRead = [pasteboard canReadObjectForClasses:@[[NSImage class]] options:@{}];
+    info.GetReturnValue().Set(Nan::New(canRead));
 }
 
 static void hasText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
