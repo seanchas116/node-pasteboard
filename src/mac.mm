@@ -181,12 +181,13 @@ static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         if (width < 1 || height < 1) {
             return;
         }
-        auto buffer = Nan::NewBuffer(width * height * 4).ToLocalChecked();
-        imageToPixels(image, (uint8_t *)node::Buffer::Data(buffer));
+        auto arrayBuffer = v8::ArrayBuffer::New(info.GetIsolate(), width * height * 4);
+        auto array = v8::Uint8ClampedArray::New(arrayBuffer, 0, arrayBuffer->ByteLength());
+        imageToPixels(image, *Nan::TypedArrayContents<uint8_t>(array));
         auto obj = Nan::New<v8::Object>();
         obj->Set(Nan::New("width").ToLocalChecked(), Nan::New(width));
         obj->Set(Nan::New("height").ToLocalChecked(), Nan::New(height));
-        obj->Set(Nan::New("data").ToLocalChecked(), buffer);
+        obj->Set(Nan::New("data").ToLocalChecked(), array);
         info.GetReturnValue().Set(obj);
     }
 }

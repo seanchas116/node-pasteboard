@@ -54,7 +54,7 @@ describe('pasteboard', () => {
   it('sets/gets image', () => {
     const width = 20
     const height  = 10
-    const data = new Buffer(width * height * 4)
+    const data = new Uint8ClampedArray(width * height * 4)
 
     let i = 0
     for (let y = 0; y < height; ++y) {
