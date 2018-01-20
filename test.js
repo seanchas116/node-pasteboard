@@ -78,6 +78,7 @@ describe('pasteboard', () => {
     pasteboard.set({ image })
 
     let copiedImage = pasteboard.getImage()
+    assert.equal(pasteboard.hasImage(), true)
     assert.equal(copiedImage.width, image.width)
     assert.equal(copiedImage.height, image.height)
     assert.deepEqual(copiedImage.data, image.data)
