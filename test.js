@@ -53,25 +53,34 @@ describe('pasteboard', () => {
     assert.equal(pasteboard.getDataBuffer(type3), undefined)
   })
   it('sets/gets image', () => {
-    const header = 'data:image/png;base64,'
-    const pngData = fs.readFileSync('test.png')
-    const dataURL = header + pngData.toString('base64')
-    pasteboard.set({image: dataURL})
-    assert.equal(pasteboard.hasText(), false)
-    assert.equal(pasteboard.hasImage(), true)
+    const width = 20
+    const height  = 10
+    const data = new Buffer(width * height * 4)
 
-    let copiedImage = pasteboard.getImage()
-    assert.equal(copiedImage.slice(0, header.length), header)
-    const copiedPngData = Buffer.from(copiedImage.slice(header.length), 'base64')
-
-    // FIXME: pngjs cannot parse copied image
-    const original = new PngImg(pngData)
-    const copied = new PngImg(copiedPngData)
-    assert.deepEqual(copied.size(), original.size())
-    for (let y = 0; y < original.size().height; ++y) {
-      for (let x = 0; x < original.size().width; ++x) {
-        assert.deepEqual(copied.get(x, y), original.get(x, y))
+    let i = 0
+    for (let y = 0; y < height; ++y) {
+      for (let x = 0; x < width; ++x) {
+        if (x < 10) {
+          data[i++] = 255
+          data[i++] = 0
+          data[i++] = 0
+          data[i++] = 255
+        } else {
+          // unpremultiplied transparent color
+          data[i++] = 0
+          data[i++] = 255
+          data[i++] = 0
+          data[i++] = 128
+        }
       }
     }
+
+    let image = { width, height, data }
+    pasteboard.set({ image })
+
+    let copiedImage = pasteboard.getImage()
+    assert.equal(copiedImage.width, image.width)
+    assert.equal(copiedImage.height, image.height)
+    assert.deepEqual(copiedImage.data, image.data)
   })
 })

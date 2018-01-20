@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <cmath>
 #import <Cocoa/Cocoa.h>
 
 static NSString *toNSString(const v8::Local<v8::String>& string) {
@@ -10,6 +11,49 @@ static NSString *mimeToUTI(NSString *mime) {
     CFStringRef mimeType = (__bridge CFStringRef)mime;
     CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
     return (__bridge_transfer NSString *)uti;
+}
+
+static NSImage *imageFromPixels(size_t width, size_t height, uint8_t *rawData) {
+    auto provider = CGDataProviderCreateWithData(NULL, rawData, width * height * 4, NULL);
+    auto colorSpace = CGColorSpaceCreateDeviceRGB();
+    // auto colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+    auto imageRef = CGImageCreate(width, height, 8, 32, width * 4,
+                                  colorSpace,
+                                  kCGBitmapByteOrderDefault | kCGImageAlphaLast,
+                                  provider,
+                                  nullptr,
+                                  false,
+                                  kCGRenderingIntentDefault);
+
+    auto imageRep = [[NSBitmapImageRep alloc] initWithCGImage:imageRef];
+    auto image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+    [image addRepresentation:imageRep];
+    CFRelease(provider);
+    CFRelease(colorSpace);
+    CFRelease(imageRef);
+    return image;
+}
+
+static void imageToPixels(NSImage *image, uint8_t *rawData) {
+    size_t width = image.size.width;
+    size_t height = image.size.height;
+
+    auto colorSpace = CGColorSpaceCreateDeviceRGB();
+    auto bitmapContext = CGBitmapContextCreate(rawData, width, height, 8, width * 4, colorSpace, kCGImageAlphaPremultipliedLast);
+    auto rect = NSMakeRect(0, 0, width, height);
+    auto cgImage = [image CGImageForProposedRect:&rect context:[NSGraphicsContext currentContext] hints:nil];
+    CGContextDrawImage(bitmapContext, NSRectToCGRect(rect), cgImage);
+    CFRelease(cgImage);
+    CFRelease(bitmapContext);
+    CFRelease(colorSpace);
+
+    for (size_t i = 0; i < width * height; ++i) {
+        double a = rawData[i * 4 + 3];
+        double unmult = 255.0 / a;
+        rawData[i * 4] = std::round(rawData[i * 4] * unmult);
+        rawData[i * 4 + 1] = std::round(rawData[i * 4 + 1] * unmult);
+        rawData[i * 4 + 2] = std::round(rawData[i * 4 + 2] * unmult);
+    }
 }
 
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -38,14 +82,30 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto imageKey = Nan::New("image").ToLocalChecked();
     if (values->Has(imageKey)) {
         auto image = values->Get(imageKey);
-        if (!node::Buffer::HasInstance(image)) {
-            Nan::ThrowTypeError("Image must be Buffer");
+        if (!image->IsObject()) {
+            Nan::ThrowTypeError("Image must be Object");
             return;
         }
-        auto len = node::Buffer::Length(image);
-        auto p = node::Buffer::Data(image);
-        auto data = [[NSData alloc] initWithBytes:p length:len];
-        auto nsImage = [[NSImage alloc] initWithData:data];
+        auto imageObj = image->ToObject();
+        auto width = imageObj->Get(Nan::New("width").ToLocalChecked());
+        auto height = imageObj->Get(Nan::New("height").ToLocalChecked());
+        auto data = imageObj->Get(Nan::New("data").ToLocalChecked());
+        if (!width->IsNumber() || !height->IsNumber()) {
+            Nan::ThrowTypeError("width & height must be Number");
+            return;
+        }
+        if (!node::Buffer::HasInstance(data)) {
+            Nan::ThrowTypeError("data must be Buffer");
+            return;
+        }
+        size_t w = width->ToNumber()->Int32Value();
+        size_t h = height->ToNumber()->Int32Value();
+        if (w * h * 4 != node::Buffer::Length(data)) {
+            Nan::ThrowTypeError("The length of data is wrong");
+        }
+        auto p = (uint8_t *)node::Buffer::Data(data);
+
+        auto nsImage = imageFromPixels(w, h, p);
         [pasteboardItems addObject:nsImage];
     }
 
@@ -116,13 +176,18 @@ static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto images = [pasteboard readObjectsForClasses:@[[NSImage class]] options:@{}];
     if (images != nil && images.count > 0) {
         NSImage *image = images[0];
-
-        auto tiffData = [image TIFFRepresentation];
-        auto imageRep = [NSBitmapImageRep imageRepWithData:tiffData];
-        auto pngData = [imageRep representationUsingType:NSPNGFileType properties:@{}];
-
-        auto buffer = Nan::CopyBuffer((const char *)pngData.bytes, pngData.length).ToLocalChecked();
-        info.GetReturnValue().Set(buffer);
+        int width = image.size.width;
+        int height = image.size.height;
+        if (width < 1 || height < 1) {
+            return;
+        }
+        auto buffer = Nan::NewBuffer(width * height * 4).ToLocalChecked();
+        imageToPixels(image, (uint8_t *)node::Buffer::Data(buffer));
+        auto obj = Nan::New<v8::Object>();
+        obj->Set(Nan::New("width").ToLocalChecked(), Nan::New(width));
+        obj->Set(Nan::New("height").ToLocalChecked(), Nan::New(height));
+        obj->Set(Nan::New("data").ToLocalChecked(), buffer);
+        info.GetReturnValue().Set(obj);
     }
 }
 
