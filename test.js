@@ -1,7 +1,6 @@
 const fs = require('fs')
 const assert = require('assert')
 const clipboardy = require('clipboardy')
-const PngImg = require('png-img')
 const pasteboard = require('.')
 
 describe('pasteboard', () => {
