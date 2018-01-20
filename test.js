@@ -1,7 +1,7 @@
 const fs = require('fs')
 const assert = require('assert')
 const clipboardy = require('clipboardy')
-const {PNG} = require('pngjs');
+const PngImg = require('png-img')
 const pasteboard = require('.')
 
 describe('pasteboard', () => {
@@ -47,8 +47,14 @@ describe('pasteboard', () => {
     assert.equal(copiedImage.slice(0, header.length), header)
     const copiedPngData = Buffer.from(copiedImage.slice(header.length), 'base64')
 
-    const original = PNG.sync.read(pngData)
-    const copied = PNG.sync.read(copiedPngData) // FIXME: Parsing copiedPngData crashes
-    assert.deepEqual(copied.data, original.data)
+    // FIXME: pngjs cannot parse copied image
+    const original = new PngImg(pngData)
+    const copied = new PngImg(copiedPngData)
+    assert.deepEqual(copied.size(), original.size())
+    for (let y = 0; y < original.size().height; ++y) {
+      for (let x = 0; x < original.size().width; ++x) {
+        assert.deepEqual(copied.get(x, y), original.get(x, y))
+      }
+    }
   })
 })
