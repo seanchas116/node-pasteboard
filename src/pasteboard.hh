@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <memory>
 
 struct ImageData {
     size_t width = 0;
