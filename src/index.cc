@@ -1,6 +1,11 @@
 #include <nan.h>
 #include "pasteboard.hh"
 
+static std::string toStdString(const v8::Local<v8::String>& string) {
+    v8::String::Utf8Value utf8(string);
+    return std::string(*utf8, utf8.length());
+}
+
 static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
@@ -21,7 +26,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("Text must be String");
             return;
         }
-        writer->writeText(*v8::String::Utf8Value(text));
+        writer->writeText(toStdString(text->ToString()));
     }
 
     auto imageKey = Nan::New("image").ToLocalChecked();
@@ -67,9 +72,9 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         for (size_t i = 0; i < dataKeys->Length(); ++i) {
             auto mime = dataKeys->Get(i);
             auto data = dataObject->Get(mime);
-            std::string mimeStr = *v8::String::Utf8Value(mime);
+            auto mimeStr = toStdString(mime->ToString());
             if (data->IsString()) {
-                std::string dataStr = *v8::String::Utf8Value(data->ToString());
+                auto dataStr = toStdString(data->ToString());
                 writer->writeData(mimeStr, dataStr);
             } else if (node::Buffer::HasInstance(data)) {
                 auto bytes = node::Buffer::Data(data);
@@ -104,7 +109,7 @@ static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    auto result = reader->hasData(*v8::String::Utf8Value(info[0]->ToString()));
+    auto result = reader->hasData(toStdString(info[0]->ToString()));
     info.GetReturnValue().Set(Nan::New(result));
 }
 
@@ -141,7 +146,7 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    std::string type = *v8::String::Utf8Value(info[0]->ToString());
+    auto type = toStdString(info[0]->ToString());
     if (reader->hasData(type)) {
         auto data = reader->readDataBuffer(type);
         auto buffer = Nan::CopyBuffer((const char *)data.data(), data.size()).ToLocalChecked();
@@ -159,7 +164,7 @@ static void getDataString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    std::string type = *v8::String::Utf8Value(info[0]->ToString());
+    auto type = toStdString(info[0]->ToString());
     if (reader->hasData(type)) {
         auto str = reader->readDataString(type);
         info.GetReturnValue().Set(Nan::New(str).ToLocalChecked());
