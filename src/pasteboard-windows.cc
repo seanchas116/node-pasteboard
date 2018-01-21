@@ -36,25 +36,25 @@ public:
         CloseClipboard();
     }
     bool hasText() {
-
+        return false;
     }
     bool hasImage() {
-
+        return false;
     }
     bool hasData(const std::string &mimeType) {
-
+        return false;
     }
     std::string readText() {
-
+        return "";
     }
     ImageData readImage() {
-
+        return ImageData();
     }
     std::string readDataString(const std::string &mimeType) {
-
+        return "";
     }
     std::vector<uint8_t> readDataBuffer(const std::string &mimeType) {
-
+        return {};
     }
 };
 
