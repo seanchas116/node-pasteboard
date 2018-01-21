@@ -1,4 +1,4 @@
-const fs = require('fs')
+/* global describe, it */
 const assert = require('assert')
 const clipboardy = require('clipboardy')
 const pasteboard = require('.')
@@ -53,7 +53,7 @@ describe('pasteboard', () => {
   })
   it('sets/gets image', () => {
     const width = 20
-    const height  = 10
+    const height = 10
     const data = new Uint8ClampedArray(width * height * 4)
 
     let i = 0
