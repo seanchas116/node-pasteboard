@@ -5,9 +5,10 @@
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
       ],
+      "sources": [ "src/index.cc", "src/pasteboard.hh" ],
       "conditions": [
         ['OS=="mac"', {
-          "sources": [ "src/mac.mm" ],
+          "sources": [ "src/pasteboard-mac.mm" ],
           "libraries": [
             "-framework AppKit"
           ],
@@ -18,10 +19,10 @@
           }
         }],
         ['OS=="win"', {
-          "sources": [ "src/windows.cc" ]
+          "sources": [ "src/pasteboard-windows.cc" ]
         }],
         ['OS=="linux"', {
-          "sources": [ "src/linux.cc" ]
+          "sources": [ "src/pasteboard-linux.cc" ]
         }]
       ]
     }
