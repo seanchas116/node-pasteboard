@@ -1,10 +1,13 @@
+#include <Windows.h>
 #include "pasteboard.hh"
 
 class PasteboardWriterWindows : public PasteboardWriter {
 public:
     PasteboardWriterWindows() {
+        OpenClipboard(nullptr);
     }
     ~PasteboardWriterWindows() {
+        CloseClipboard();
     }
     void writeText(const std::string &text) {
 
@@ -27,9 +30,10 @@ std::unique_ptr<PasteboardWriter> createWriter() {
 class PasteboardReaderWindows : public PasteboardReader {
 public:
     PasteboardReaderWindows() {
-
+        OpenClipboard(nullptr);
     }
     ~PasteboardReaderWindows() {
+        CloseClipboard();
     }
     bool hasText() {
 
