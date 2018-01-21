@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "clipboardy": "^1.2.2",
-    "mocha": "^4.1.0"
+    "mocha": "^4.1.0",
+    "standard": "^10.0.3"
   }
 }
