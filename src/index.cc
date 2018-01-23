@@ -15,7 +15,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         Nan::ThrowTypeError("Argument must be Object");
         return;
     }
-    auto values = info[0]->ToObject();
+    auto values = Nan::To<v8::Object>(info[0]).ToLocalChecked();
 
     auto writer = createWriter();
 
@@ -26,7 +26,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("Text must be String");
             return;
         }
-        writer->writeText(toStdString(text->ToString()));
+        writer->writeText(toStdString(Nan::To<v8::String>(text).ToLocalChecked()));
     }
 
     auto imageKey = Nan::New("image").ToLocalChecked();
@@ -36,7 +36,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("Image must be Object");
             return;
         }
-        auto imageObj = image->ToObject();
+        auto imageObj = Nan::To<v8::Object>(image).ToLocalChecked();
         auto width = imageObj->Get(Nan::New("width").ToLocalChecked());
         auto height = imageObj->Get(Nan::New("height").ToLocalChecked());
         auto data = imageObj->Get(Nan::New("data").ToLocalChecked());
@@ -49,8 +49,8 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             return;
         }
         ImageData imageData;
-        imageData.width = width->ToNumber()->Int32Value();
-        imageData.height = height->ToNumber()->Int32Value();
+        imageData.width = Nan::To<int32_t>(width).ToChecked();
+        imageData.height = Nan::To<int32_t>(height).ToChecked();
         imageData.data.resize(imageData.width * imageData.height * 4);
         if (imageData.data.size() != node::Buffer::Length(data)) {
             Nan::ThrowTypeError("The length of data is wrong");
@@ -67,14 +67,14 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             Nan::ThrowTypeError("Data map must be Object");
             return;
         }
-        auto dataObject = datas->ToObject();
+        auto dataObject = Nan::To<v8::Object>(datas).ToLocalChecked();
         auto dataKeys = dataObject->GetPropertyNames();
         for (size_t i = 0; i < dataKeys->Length(); ++i) {
             auto mime = dataKeys->Get(i);
             auto data = dataObject->Get(mime);
-            auto mimeStr = toStdString(mime->ToString());
+            auto mimeStr = toStdString(Nan::To<v8::String>(mime).ToLocalChecked());
             if (data->IsString()) {
-                auto dataStr = toStdString(data->ToString());
+                auto dataStr = toStdString(Nan::To<v8::String>(data).ToLocalChecked());
                 writer->writeData(mimeStr, dataStr);
             } else if (node::Buffer::HasInstance(data)) {
                 auto bytes = node::Buffer::Data(data);
@@ -109,7 +109,7 @@ static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    auto result = reader->hasData(toStdString(info[0]->ToString()));
+    auto result = reader->hasData(toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked()));
     info.GetReturnValue().Set(Nan::New(result));
 }
 
@@ -146,7 +146,7 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    auto type = toStdString(info[0]->ToString());
+    auto type = toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked());
     if (reader->hasData(type)) {
         auto data = reader->readDataBuffer(type);
         auto buffer = Nan::CopyBuffer((const char *)data.data(), data.size()).ToLocalChecked();
@@ -164,7 +164,7 @@ static void getDataString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         return;
     }
     auto reader = createReader();
-    auto type = toStdString(info[0]->ToString());
+    auto type = toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked());
     if (reader->hasData(type)) {
         auto str = reader->readDataString(type);
         info.GetReturnValue().Set(Nan::New(str).ToLocalChecked());
