@@ -10,13 +10,13 @@ interface PasteboardValues {
   data?: { [mimeType: string]: Buffer | string }
 }
 
-export function set (values: PasteboardValues)
+export function set (values: PasteboardValues): void
 
 export function hasImage (): boolean
 export function hasText (): boolean
 export function hasData (mimeType: string): boolean
 
-export function getImage (): PasteboardImage
-export function getText (): string
-export function getDataBuffer (mimeType: string): Buffer
-export function getDataString (mimeType: string): string
+export function getImage (): PasteboardImage | undefined
+export function getText (): string | undefined
+export function getDataBuffer (mimeType: string): Buffer | undefined
+export function getDataString (mimeType: string): string | undefined
