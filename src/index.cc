@@ -115,17 +115,19 @@ static void hasData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
 static void getImage(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto reader = createReader();
-    auto imageData = reader->readImage();
+    if (reader->hasImage()) {
+        auto imageData = reader->readImage();
 
-    auto arrayBuffer = v8::ArrayBuffer::New(info.GetIsolate(), imageData.data.size());
-    auto array = v8::Uint8ClampedArray::New(arrayBuffer, 0, arrayBuffer->ByteLength());
-    memcpy(*Nan::TypedArrayContents<uint8_t>(array), imageData.data.data(), imageData.data.size());
+        auto arrayBuffer = v8::ArrayBuffer::New(info.GetIsolate(), imageData.data.size());
+        auto array = v8::Uint8ClampedArray::New(arrayBuffer, 0, arrayBuffer->ByteLength());
+        memcpy(*Nan::TypedArrayContents<uint8_t>(array), imageData.data.data(), imageData.data.size());
 
-    auto obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("width").ToLocalChecked(), Nan::New((int)imageData.width));
-    obj->Set(Nan::New("height").ToLocalChecked(), Nan::New((int)imageData.height));
-    obj->Set(Nan::New("data").ToLocalChecked(), array);
-    info.GetReturnValue().Set(obj);
+        auto obj = Nan::New<v8::Object>();
+        obj->Set(Nan::New("width").ToLocalChecked(), Nan::New((int)imageData.width));
+        obj->Set(Nan::New("height").ToLocalChecked(), Nan::New((int)imageData.height));
+        obj->Set(Nan::New("data").ToLocalChecked(), array);
+        info.GetReturnValue().Set(obj);
+    }
 }
 
 static void getText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
