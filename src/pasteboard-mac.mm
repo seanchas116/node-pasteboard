@@ -46,7 +46,6 @@ static ImageData toImageData(NSImage *image) {
     auto rect = NSMakeRect(0, 0, data.width, data.height);
     auto cgImage = [image CGImageForProposedRect:&rect context:[NSGraphicsContext currentContext] hints:nil];
     CGContextDrawImage(bitmapContext, NSRectToCGRect(rect), cgImage);
-    CFRelease(cgImage);
     CFRelease(bitmapContext);
     CFRelease(colorSpace);
 
