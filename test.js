@@ -17,9 +17,9 @@ describe('pasteboard', () => {
     assert.equal(pasteboard.getText(), text)
   })
   it('sets/gets custom data string', () => {
-    const type1 = 'application/x-foo-bar'
-    const type2 = 'application/x-hoge-poyo'
-    const type3 = 'application/x-not-copied'
+    const type1 = 'com.test.foo-bar'
+    const type2 = 'com.test.hoge-poyo'
+    const type3 = 'com.test.not-copied'
     const data = 'Hello, custom data'
     pasteboard.set({
       text: data,
@@ -35,9 +35,9 @@ describe('pasteboard', () => {
     assert.equal(pasteboard.getDataString(type2), data)
   })
   it('sets/gets custom data buffer', () => {
-    const type1 = 'application/x-foo-bar'
-    const type2 = 'application/x-hoge-poyo'
-    const type3 = 'application/x-not-copied'
+    const type1 = 'com.test.foo-bar'
+    const type2 = 'com.test.hoge-poyo'
+    const type3 = 'com.test.not-copied'
     const data = Buffer.from('Hello, custom data')
     pasteboard.set({
       data: { [type1]: data, [type2]: data }
