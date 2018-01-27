@@ -15,10 +15,10 @@ public:
     void writeImage(const ImageData &image) {
 
     }
-    void writeData(const std::string &mimeType, std::string &text) {
+    void writeData(const std::string &type, std::string &text) {
 
     }
-    void writeData(const std::string &mimeType, const std::vector<uint8_t> &data) {
+    void writeData(const std::string &type, const std::vector<uint8_t> &data) {
 
     }
 };
@@ -41,7 +41,7 @@ public:
     bool hasImage() {
         return false;
     }
-    bool hasData(const std::string &mimeType) {
+    bool hasData(const std::string &type) {
         return false;
     }
     std::string readText() {
@@ -50,10 +50,10 @@ public:
     ImageData readImage() {
         return ImageData();
     }
-    std::string readDataString(const std::string &mimeType) {
+    std::string readDataString(const std::string &type) {
         return "";
     }
-    std::vector<uint8_t> readDataBuffer(const std::string &mimeType) {
+    std::vector<uint8_t> readDataBuffer(const std::string &type) {
         return {};
     }
 };
