@@ -2,12 +2,6 @@
 #include <cmath>
 #import <Cocoa/Cocoa.h>
 
-static NSString *mimeToUTI(NSString *mime) {
-    CFStringRef mimeType = (__bridge CFStringRef)mime;
-    CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
-    return (__bridge_transfer NSString *)uti;
-}
-
 static NSImage *toNSImage(const ImageData& data) {
     auto buffer = new uint8_t[data.data.size()];
     auto releaseBuffer = [](void *info, const void *data, size_t size) {
@@ -81,17 +75,17 @@ public:
         [_items addObject:nsImage];
     }
 
-    void writeData(const std::string &mimeType, std::string &text) override {
+    void writeData(const std::string &type, std::string &text) override {
         auto item = [[NSPasteboardItem alloc] init];
-        auto uti = mimeToUTI([NSString stringWithUTF8String:mimeType.c_str()]);
+        auto uti = [NSString stringWithUTF8String:type.c_str()];
         auto string = [NSString stringWithUTF8String:text.c_str()];
         [item setString:string forType:uti];
         [_items addObject:item];
     }
 
-    void writeData(const std::string &mimeType, const std::vector<uint8_t> &data) override {
+    void writeData(const std::string &type, const std::vector<uint8_t> &data) override {
         auto item = [[NSPasteboardItem alloc] init];
-        auto uti = mimeToUTI([NSString stringWithUTF8String:mimeType.c_str()]);
+        auto uti = [NSString stringWithUTF8String:type.c_str()];
         auto nsData = [NSData dataWithBytes:data.data() length:data.size()];
         [item setData:nsData forType:uti];
         [_items addObject:item];
@@ -116,9 +110,9 @@ public:
         return [pasteboard canReadObjectForClasses:@[[NSImage class]] options:@{}];
     }
 
-    bool hasData(const std::string &mimeType) {
+    bool hasData(const std::string &type) {
         auto pasteboard = [NSPasteboard generalPasteboard];
-        auto uti = mimeToUTI([NSString stringWithUTF8String:mimeType.c_str()]);
+        auto uti = [NSString stringWithUTF8String:type.c_str()];
         return [pasteboard.types containsObject:uti];
     }
 
@@ -142,9 +136,9 @@ public:
         }
     }
 
-    std::string readDataString(const std::string &mimeType) {
+    std::string readDataString(const std::string &type) {
         auto pasteboard = [NSPasteboard generalPasteboard];
-        auto uti = mimeToUTI([NSString stringWithUTF8String:mimeType.c_str()]);
+        auto uti = [NSString stringWithUTF8String:type.c_str()];
         auto string = [pasteboard stringForType:uti];
         if (string == nil) {
             return "";
@@ -152,9 +146,9 @@ public:
         return [string UTF8String];
     }
 
-    std::vector<uint8_t> readDataBuffer(const std::string &mimeType) {
+    std::vector<uint8_t> readDataBuffer(const std::string &type) {
         auto pasteboard = [NSPasteboard generalPasteboard];
-        auto uti = mimeToUTI([NSString stringWithUTF8String:mimeType.c_str()]);
+        auto uti = [NSString stringWithUTF8String:type.c_str()];
         auto nsData = [pasteboard dataForType:uti];
         if (nsData == nil) {
             return {};
