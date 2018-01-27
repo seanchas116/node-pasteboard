@@ -73,10 +73,7 @@ static void set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
             auto mime = dataKeys->Get(i);
             auto data = dataObject->Get(mime);
             auto mimeStr = toStdString(Nan::To<v8::String>(mime).ToLocalChecked());
-            if (data->IsString()) {
-                auto dataStr = toStdString(Nan::To<v8::String>(data).ToLocalChecked());
-                writer->writeData(mimeStr, dataStr);
-            } else if (node::Buffer::HasInstance(data)) {
+            if (node::Buffer::HasInstance(data)) {
                 auto bytes = node::Buffer::Data(data);
                 auto length = node::Buffer::Length(data);
                 std::vector<uint8_t> dataVector(bytes, bytes + length);
@@ -138,7 +135,7 @@ static void getText(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     }
 }
 
-static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+static void getData(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (info.Length() < 1) {
         Nan::ThrowTypeError("Wrong number of arguments");
         return;
@@ -150,26 +147,9 @@ static void getDataBuffer(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     auto reader = createReader();
     auto type = toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked());
     if (reader->hasData(type)) {
-        auto data = reader->readDataBuffer(type);
+        auto data = reader->readData(type);
         auto buffer = Nan::CopyBuffer((const char *)data.data(), data.size()).ToLocalChecked();
         info.GetReturnValue().Set(buffer);
-    }
-}
-
-static void getDataString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-    if (info.Length() < 1) {
-        Nan::ThrowTypeError("Wrong number of arguments");
-        return;
-    }
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("Argument must be String");
-        return;
-    }
-    auto reader = createReader();
-    auto type = toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked());
-    if (reader->hasData(type)) {
-        auto str = reader->readDataString(type);
-        info.GetReturnValue().Set(Nan::New(str).ToLocalChecked());
     }
 }
 
@@ -186,10 +166,8 @@ static void InitModule(v8::Local<v8::Object> exports) {
                  Nan::New<v8::FunctionTemplate>(getImage)->GetFunction());
     exports->Set(Nan::New("getText").ToLocalChecked(),
                  Nan::New<v8::FunctionTemplate>(getText)->GetFunction());
-    exports->Set(Nan::New("getDataBuffer").ToLocalChecked(),
-                 Nan::New<v8::FunctionTemplate>(getDataBuffer)->GetFunction());
-    exports->Set(Nan::New("getDataString").ToLocalChecked(),
-                 Nan::New<v8::FunctionTemplate>(getDataString)->GetFunction());
+    exports->Set(Nan::New("getData").ToLocalChecked(),
+                 Nan::New<v8::FunctionTemplate>(getData)->GetFunction());
 }
 
 NODE_MODULE(pasteboard, InitModule)

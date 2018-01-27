@@ -7,7 +7,7 @@ interface PasteboardImage {
 interface PasteboardValues {
   image?: PasteboardImage
   text?: string
-  data?: { [type: string]: Buffer | string }
+  data?: { [type: string]: Buffer }
 }
 
 export function set (values: PasteboardValues): void
@@ -18,5 +18,4 @@ export function hasData (type: string): boolean
 
 export function getImage (): PasteboardImage | undefined
 export function getText (): string | undefined
-export function getDataBuffer (type: string): Buffer | undefined
-export function getDataString (type: string): string | undefined
+export function getData (type: string): Buffer | undefined

@@ -75,14 +75,6 @@ public:
         [_items addObject:nsImage];
     }
 
-    void writeData(const std::string &type, std::string &text) override {
-        auto item = [[NSPasteboardItem alloc] init];
-        auto uti = [NSString stringWithUTF8String:type.c_str()];
-        auto string = [NSString stringWithUTF8String:text.c_str()];
-        [item setString:string forType:uti];
-        [_items addObject:item];
-    }
-
     void writeData(const std::string &type, const std::vector<uint8_t> &data) override {
         auto item = [[NSPasteboardItem alloc] init];
         auto uti = [NSString stringWithUTF8String:type.c_str()];
@@ -136,17 +128,7 @@ public:
         }
     }
 
-    std::string readDataString(const std::string &type) {
-        auto pasteboard = [NSPasteboard generalPasteboard];
-        auto uti = [NSString stringWithUTF8String:type.c_str()];
-        auto string = [pasteboard stringForType:uti];
-        if (string == nil) {
-            return "";
-        }
-        return [string UTF8String];
-    }
-
-    std::vector<uint8_t> readDataBuffer(const std::string &type) {
+    std::vector<uint8_t> readData(const std::string &type) {
         auto pasteboard = [NSPasteboard generalPasteboard];
         auto uti = [NSString stringWithUTF8String:type.c_str()];
         auto nsData = [pasteboard dataForType:uti];
